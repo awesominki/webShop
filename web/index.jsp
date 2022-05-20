@@ -22,6 +22,13 @@
   <input type="submit" value="firstservlet post">
 </form>
 
+<hr>
+<ul>
+  <li><a href="emp/emplist.do">모든 직원조회</a></li>
+  <li><a href="dept/deptlist.do">모든 부서조회</a></li>
+  <li><a href="board/boardlist.do">모든 게시판조회</a></li>
+</ul>
+
 <script>
   btn1.onclick = function () {
     location.href = "FirstServlet";
