@@ -1,6 +1,9 @@
 package controller;
 
+import dto.DeptDTO;
 import dto.EmpVO;
+import dto.JobVO;
+import model.DeptService;
 import model.EmpService;
 import util.DateUtil;
 
@@ -12,39 +15,40 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Date;
+import java.util.List;
 
 /**
  * Servlet implementation class EmpDetailServlet
  */
-@WebServlet("/emp/empDetail.do")
-public class EmpDetailServlet extends HttpServlet {
+@WebServlet("/emp/empInsert.do")
+public class EmpInsertServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	protected void doGet(HttpServletRequest request, 
 			HttpServletResponse response) throws ServletException, IOException {
-		String empid = request.getParameter("empid");
-		int i_empid = 0;
+
+
+		DeptService dService = new DeptService();
+		List<DeptDTO> dlist = dService.selectAll();
 		
-		//System.out.println("empid=" + empid);
-		
-		if(empid !=null ) {
-			i_empid = Integer.parseInt(empid);
-		}
 		EmpService eService = new EmpService();
-		EmpVO emp = eService.selectById(i_empid);
-		//System.out.println(emp);
-		request.setAttribute("emp", emp);
+		List<JobVO> jobList = eService.selctJobAll();
+		request.setAttribute("dlist", dlist);
+		request.setAttribute("jlist", jobList);
+		request.setAttribute("mlist", eService.selctManagerAll());
+		
 		
 		RequestDispatcher rd;
-		rd = request.getRequestDispatcher("empDetail.jsp");
+		rd = request.getRequestDispatcher("empInsert.jsp");
 		rd.forward(request, response);
 	}
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//�����ϱ� 
+		//�Է��ϱ� 
+		request.setCharacterEncoding("utf-8");
 		EmpVO emp = makeEmp(request);
 		EmpService eService = new EmpService();
-		int result = eService.empUpdate(emp);
-		request.setAttribute("message", result>0?"�������� ��������":"�������� ��������");
+		int result = eService.empInsert(emp);
+		request.setAttribute("message", result>0?"�������� insert����":"�������� insert����");
 		RequestDispatcher rd;
 		rd = request.getRequestDispatcher("result.jsp");
 		rd.forward(request, response);
@@ -52,7 +56,7 @@ public class EmpDetailServlet extends HttpServlet {
 	private EmpVO makeEmp(HttpServletRequest request) {
 		EmpVO emp = new EmpVO();
 		int empid = readInt(request, "employee_id");
-		int mid = readInt(request, "manager_id");
+		Integer mid = readInt(request, "manager_id");
 		int did = readInt(request, "department_id");
 		double salary = readDouble(request, "salary");
 		double commission_pct = readDouble(request, "commission_pct");

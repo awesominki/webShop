@@ -28,6 +28,7 @@
         <td>작성자</td>
         <td>작성일</td>
         <td>수정일</td>
+        <td></td>
     </tr>
     <c:forEach items="${boardDatas}" var="board">
         <tr>
@@ -37,8 +38,20 @@
             <td>${board.writer}</td>
             <td>${board.regdate}</td>
             <td>${board.updatedate}</td>
+            <td><button class="btnDel" data-bno="${board.bno}">삭제하기</button></td>
         </tr>
     </c:forEach>
 </table>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+$(function (){
+    $(".btnDel").click(function (){
+        var bno = $(this).attr("data-bno");
+        if(confirm(bno + "삭제?")){
+            location.href = "boardDelete.do?bno=" + bno;
+        }
+    });
+});
+</script>
 </body>
 </html>

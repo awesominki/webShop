@@ -1,40 +1,51 @@
 package model;
 
 import dto.EmpVO;
+import dto.JobVO;
 import util.DBUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-//CRUD
+//CRUD�۾�(insert(C), select(R),update(U), Delete(D)==>DAO(Data Access Object)
 public class EmpDAO {
 	static final String SQL_SELECT_ALL = "select * from employees order by 1";
-	static final String SQL_SELECT_BY_DEPT = "select * from employees where department_id = ? order by 1";
-	static final String SQL_SELECT_BY_MANAGER = "select * from employees where manager_id = ? order by 1";
-	static final String SQL_SELECT_BY_JOB = "select * from employees where job_id = ? order by 1";
-	static final String SQL_SELECT_CONDITION = "select * from employees where department_id = ? and job_id = ?"
-			+ "and salary >= ? and hire_date >= ? order by 1";
-	static final String SQL_SELECT_BY_ID = "select * from employees where employee_id = ?";
+	static final String SQL_SELECT_BYDEPT = "select * from employees where department_id = ? order by 1";
+	static final String SQL_SELECT_BYMANAGER = "select * from employees where manager_id = ? order by 1";
+	static final String SQL_SELECT_JOB = "select * from employees where job_id = ? order by 1";
+	static final String SQL_SELECT_CONDITION = " select * " + " from employees " + " where department_id=? "
+			+ " and job_id = ? " + " and salary >= ?" + " and hire_date>= ?" + " order by 1";
+	static final String SQL_SELECT_BYID = "select * from employees where employee_id = ?  ";
 	static final String SQL_INSERT = "insert into employees values(?,?,?,?,?,?,?,?,?,?,?)";
-	static final String SQL_UPDATE = "update employees set first_name = ? , last_name = ?, email = ?, phone_number=?, hire_date=?,"
-			+ "job_id=?, salary=?, commission_pct=?, manager_id=?, department_id=? where employee_id = ?";
-	static final String SQL_UPDATE_BY_DEPT = "update employees set salary=?, commission_pct=? where department_id=?";
-	static final String SQL_DELETE = "delete from employees where employee_id = ?";
-	static final String SQL_DELETE_BY_DEPT = "delete from employees where department_id = ?";
+	static final String SQL_UPDATE = "UPDATE EMPLOYEES SET  " + "  FIRST_NAME=?, " + "  LAST_NAME=?, " + "  EMAIL=?, "
+			+ "  PHONE_NUMBER=?, " + "  HIRE_DATE=?, " + "  JOB_ID=?, " + "  SALARY=?, " + "  COMMISSION_PCT=?, "
+			+ "  MANAGER_ID=decode(?,0,null,?), " + "  DEPARTMENT_ID=? " + " WHERE EMPLOYEE_ID = ?";
+	static final String SQL_UPDATE_BYDEPT = "UPDATE EMPLOYEES SET" + "  SALARY=?, " + "  COMMISSION_PCT=?  "
+			+ " WHERE DEPARTMENT_ID = ?";
+
+	static final String SQL_DELETE = "DELETE FROM EMPLOYEES \r\n" + "	WHERE EMPLOYEE_ID = ?";
+	static final String SQL_DELETE_BYDEPT = "DELETE FROM EMPLOYEES \r\n" + "	WHERE DEPARTMENT_ID = ?";
+
+	static final String SQL_MANAGERALL = "select employee_id, first_name " + " from employees "
+			+ " where employee_id in (select distinct manager_id from employees)";
+
 	Connection conn;
 	Statement st;
-	PreparedStatement pst; //바인딩 변수지원 (?)
+	PreparedStatement pst; // ���ε��������� (?)
 	ResultSet rs;
 	int result;
-	//1. 모든직원조회
-	public List<EmpVO> selectAll() {
+
+	// 1.���������ȸ
+	public List<EmpVO> selctAll() {
 		List<EmpVO> emplist = new ArrayList<>();
 		conn = DBUtil.getConnection();
 		try {
 			st = conn.createStatement();
 			rs = st.executeQuery(SQL_SELECT_ALL);
-			while(rs.next()) {
+			while (rs.next()) {
 				emplist.add(makeEmp(rs));
 			}
 		} catch (SQLException e) {
@@ -42,13 +53,49 @@ public class EmpDAO {
 		} finally {
 			DBUtil.dbClose(rs, st, conn);
 		}
-		
 		return emplist;
 	}
-	
+
+	// ���jobs��ȸ
+	public List<JobVO> selctJobAll() {
+		List<JobVO> joblist = new ArrayList<>();
+		conn = DBUtil.getConnection();
+		try {
+			st = conn.createStatement();
+			rs = st.executeQuery("select * from jobs order by 1");
+			while (rs.next()) {
+				JobVO job = new JobVO(rs.getString(1), rs.getString(2), rs.getInt(3), rs.getInt(4));
+				joblist.add(job);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.dbClose(rs, st, conn);
+		}
+		return joblist;
+	}
+
+	// ��� manager��ȸ
+	public Map<Integer,String> selctManagerAll() {
+		Map<Integer,String> managerMap = new HashMap<Integer,String>();
+		conn = DBUtil.getConnection();
+		try {
+			st = conn.createStatement();
+			rs = st.executeQuery(SQL_MANAGERALL);
+			while (rs.next()) {
+				managerMap.put(rs.getInt(1), rs.getString(2));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.dbClose(rs, st, conn);
+		}
+		return managerMap;
+	}
+
 	private EmpVO makeEmp(ResultSet rs) throws SQLException {
 		EmpVO emp = new EmpVO();
-		emp.setCommission_pct(rs.getDouble("commission_pct"));
+		emp.setCommission_pct(rs.getDouble("commission_PCT"));
 		emp.setDepartment_id(rs.getInt("department_id"));
 		emp.setEmail(rs.getString("email"));
 		emp.setEmployee_id(rs.getInt("employee_id"));
@@ -57,116 +104,115 @@ public class EmpDAO {
 		emp.setJob_id(rs.getString("job_id"));
 		emp.setLast_name(rs.getString("last_name"));
 		emp.setManager_id(rs.getInt("manager_id"));
-		emp.setPhone_number(rs.getString("phone_number"));
+		emp.setPhone_number(rs.getString("PHONE_NUMBER"));
 		emp.setSalary(rs.getDouble("salary"));
 		return emp;
 	}
 
-	//2. 조건조회(특정 부서 조회)
-	public List<EmpVO> selectByDept(int deptid) {
+	// 2.������ȸ(Ư���μ�)
+	public List<EmpVO> selctByDept(int deptid) {
 		List<EmpVO> emplist = new ArrayList<>();
 		conn = DBUtil.getConnection();
 		try {
-			pst = conn.prepareStatement(SQL_SELECT_BY_DEPT);
-			pst.setInt(1, deptid); //첫번째 ? 에 deptid를 대입한다!!!!!!
+			pst = conn.prepareStatement(SQL_SELECT_BYDEPT);
+			pst.setInt(1, deptid); // ù��°?�� �μ���ȣ�� �ִ´�.
 			rs = pst.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				emplist.add(makeEmp(rs));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DBUtil.dbClose(rs, st, conn);
+			DBUtil.dbClose(rs, pst, conn);
 		}
-		
 		return emplist;
 	}
-	
-	//3. 조건조회(특정 매니저)
-	public List<EmpVO> selectByManager(int mid) {
+
+	// 3.������ȸ(Ư���޴���)
+	public List<EmpVO> selctByManager(int mid) {
 		List<EmpVO> emplist = new ArrayList<>();
 		conn = DBUtil.getConnection();
 		try {
-			pst = conn.prepareStatement(SQL_SELECT_BY_MANAGER);
-			pst.setInt(1, mid); //첫번째 ? 에 mid를 대입한다!!!!!!
+			pst = conn.prepareStatement(SQL_SELECT_BYMANAGER);
+			pst.setInt(1, mid); // ù��°?�� �μ���ȣ�� �ִ´�.
 			rs = pst.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				emplist.add(makeEmp(rs));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DBUtil.dbClose(rs, st, conn);
+			DBUtil.dbClose(rs, pst, conn);
 		}
-		
 		return emplist;
 	}
-	
-	//4. 조건조회(특정 job)
-	public List<EmpVO> selectByJob(String job_id) {
+
+	// 4.������ȸ(Ư��job)
+	public List<EmpVO> selctByJob(String job_id) {
 		List<EmpVO> emplist = new ArrayList<>();
 		conn = DBUtil.getConnection();
 		try {
-			pst = conn.prepareStatement(SQL_SELECT_BY_JOB);
-			pst.setString(1, job_id); //첫번째 ? 에 mid를 대입한다!!!!!!
+			pst = conn.prepareStatement(SQL_SELECT_JOB);
+			pst.setString(1, job_id); // ù��°?�� �μ���ȣ�� �ִ´�.
 			rs = pst.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				emplist.add(makeEmp(rs));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DBUtil.dbClose(rs, st, conn);
+			DBUtil.dbClose(rs, pst, conn);
 		}
-		
 		return emplist;
 	}
-	
-	//5. 조건조회(특정 deptid, jobid, salary>=?, hire_date>=?)
-	public List<EmpVO> selectByCondition(int deptid, String job_id, double sal, String hire_date) {
+
+	// 5.������ȸ(Ư�� department_id=, job_id=, salary>=?, hire_date>=?)
+	public List<EmpVO> selctByCondition(int deptid, String job_id, double sal, String hire_date) {
 		List<EmpVO> emplist = new ArrayList<>();
 		conn = DBUtil.getConnection();
 		try {
 			pst = conn.prepareStatement(SQL_SELECT_CONDITION);
-			pst.setInt(1, deptid); //1번째 ? 에 mid를 대입한다!!!!!!
-			pst.setString(2, job_id); //2번째 ? 에 mid를 대입한다!!!!!!
-			pst.setDouble(3, sal); //3번째 ? 에 mid를 대입한다!!!!!!
-			pst.setString(4, hire_date); //4번째 ? 에 mid를 대입한다!!!!!!
+			pst.setInt(1, deptid); // 1��°?�� �μ���ȣ�� �ִ´�.
+			pst.setString(2, job_id); // 2��°?�� job_id�� �ִ´�.
+			pst.setDouble(3, sal); // 3��°?�� sal�� �ִ´�.
+			pst.setString(4, hire_date); // 4��°?�� hire_date�� �ִ´�.
+
 			rs = pst.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				emplist.add(makeEmp(rs));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DBUtil.dbClose(rs, st, conn);
+			DBUtil.dbClose(rs, pst, conn);
 		}
-		
 		return emplist;
 	}
-	
-	//6. 특정 직원 1건 조회
+
+	// 6.Ư������ 1�� ��ȸ
 	public EmpVO selectById(int empid) {
 		EmpVO emp = null;
+
 		conn = DBUtil.getConnection();
 		try {
-			pst = conn.prepareStatement(SQL_SELECT_BY_ID);
-			pst.setInt(1, empid);
+			pst = conn.prepareStatement(SQL_SELECT_BYID);
+			pst.setInt(1, empid); // 1��°?�� empid�� �ִ´�.
 			rs = pst.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				emp = makeEmp(rs);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DBUtil.dbClose(rs, st, conn);
+			DBUtil.dbClose(rs, pst, conn);
 		}
-		
 		return emp;
 	}
-	
-	//7. insert
+
+	// 7.insert
 	public int empInsert(EmpVO emp) {
+		int result = 0;
+
 		conn = DBUtil.getConnection();
 		try {
 			pst = conn.prepareStatement(SQL_INSERT);
@@ -182,19 +228,23 @@ public class EmpDAO {
 			pst.setInt(10, emp.getManager_id());
 			pst.setInt(11, emp.getDepartment_id());
 			result = pst.executeUpdate();
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DBUtil.dbClose(rs, st, conn);
+			DBUtil.dbClose(rs, pst, conn);
 		}
+
 		return result;
 	}
-	
-	//8. update(특정 직원 1건 employee_id=?)
+
+	// 8.update(Ư������ 1�� employee_id=?)
 	public int empUpdate(EmpVO emp) {
+		int result = 0;
 		conn = DBUtil.getConnection();
 		try {
 			pst = conn.prepareStatement(SQL_UPDATE);
+			pst.setInt(12, emp.getEmployee_id());
 			pst.setString(1, emp.getFirst_name());
 			pst.setString(2, emp.getLast_name());
 			pst.setString(3, emp.getEmail());
@@ -204,41 +254,72 @@ public class EmpDAO {
 			pst.setDouble(7, emp.getSalary());
 			pst.setDouble(8, emp.getCommission_pct());
 			pst.setInt(9, emp.getManager_id());
-			pst.setInt(10, emp.getDepartment_id());
-			pst.setInt(11, emp.getEmployee_id());
+			pst.setInt(10, emp.getManager_id());
+			pst.setInt(11, emp.getDepartment_id());
 			result = pst.executeUpdate();
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DBUtil.dbClose(rs, st, conn);
+			DBUtil.dbClose(rs, pst, conn);
 		}
 		return result;
 	}
-	
-	//9. update(조건 department_id=?)
+
+	// 9.update(���� department_id=?)
 	public int empUpdateByDept(EmpVO emp, int deptid) {
+		int result = 0;
 		conn = DBUtil.getConnection();
 		try {
-			pst = conn.prepareStatement(SQL_UPDATE_BY_DEPT);
+			pst = conn.prepareStatement(SQL_UPDATE_BYDEPT);
 			pst.setDouble(1, emp.getSalary());
 			pst.setDouble(2, emp.getCommission_pct());
 			pst.setInt(3, deptid);
+
 			result = pst.executeUpdate();
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			DBUtil.dbClose(rs, st, conn);
+			DBUtil.dbClose(rs, pst, conn);
 		}
 		return result;
 	}
-	
-	//10. delete(특정 직원 1건 employee_id=?)
+
+	// 10.delete(Ư������ 1�� employee_id=?)
 	public int empDelete(int empid) {
+		int result = 0;
+		conn = DBUtil.getConnection();
+		try {
+			pst = conn.prepareStatement(SQL_DELETE);
+			pst.setInt(1, empid);
+
+			result = pst.executeUpdate();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.dbClose(rs, pst, conn);
+		}
 		return result;
 	}
-	
-	//11. delete(조건 department_id=?)
+
+	// 11.delete(���� department_id=?)
 	public int empDeleteByDept(int deptid) {
+		int result = 0;
+		conn = DBUtil.getConnection();
+		try {
+			pst = conn.prepareStatement(SQL_DELETE_BYDEPT);
+			pst.setInt(1, deptid);
+
+			result = pst.executeUpdate();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.dbClose(rs, pst, conn);
+		}
 		return result;
 	}
+
 }
