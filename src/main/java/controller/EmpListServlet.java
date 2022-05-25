@@ -1,5 +1,6 @@
 package controller;
 
+import dto.UsersVO;
 import model.EmpService;
 
 import javax.servlet.RequestDispatcher;
@@ -8,6 +9,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
@@ -19,6 +21,14 @@ public class EmpListServlet extends HttpServlet {
        
     
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		HttpSession session = request.getSession();
+		UsersVO user = (UsersVO) session.getAttribute("user");
+		if(user == null){
+			System.out.println("로그인하지않음... 직원정보 볼수 없다.");
+			response.sendRedirect("../html/login.do");
+			return;
+		}
 
         EmpService service = new EmpService();
         request.setAttribute("emplist", service.selctAll());

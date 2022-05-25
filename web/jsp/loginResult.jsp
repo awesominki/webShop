@@ -15,5 +15,8 @@
 <h2>db접속 후 다시 수정하기</h2>
 <h2><%=request.getParameter("userid")%></h2>
 <h2>${param.userid}</h2>
+<h2>이메일 : ${param.user_email}</h2>
+<h2>주소 : ${param.user_address}</h2>
+<a href="login2.do?a=${param.userid}&b=${param.userpass}&c=${param.user_email}&d=${param.user_address}">다른페이지에 정보넘기기</a>
 </body>
 </html>

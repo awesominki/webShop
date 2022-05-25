@@ -38,12 +38,18 @@ public class BoardInsertServlet extends HttpServlet {
 		BoardVO board = new BoardVO(0, title, content, writer, null, null);
 		BoardService service = new BoardService();
 		int result = service.insert(board);
-		String message = "insert����";
-		if(result>0)  message = "insert����";
-		request.setAttribute("message", message);
-		RequestDispatcher rd ;
-		rd = request.getRequestDispatcher("result.jsp");
-		rd.forward(request, response);
+
+		response.sendRedirect("boardlist.do");
+
+		//redirect : 요청 주소창을 바꾼다.
+		//forward : 요청 주소창을 바꾸지 않는다. 요청과 응답이 다른문서이다.
+
+//		String message = "insert����";
+//		if(result>0)  message = "insert����";
+//		request.setAttribute("message", message);
+//		RequestDispatcher rd ;
+//		rd = request.getRequestDispatcher("result.jsp");
+//		rd.forward(request, response);
 	}
 
 }
