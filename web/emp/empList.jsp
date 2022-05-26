@@ -14,11 +14,20 @@
 <style>
  table, td { border:1px solid black; padding: 10px; border-collapse: collapse;}
  tr:first-child { background-color: lightgreen;}
+ h1{text-align: center; padding: 20px; margin: 10px;}
+ .left{float: left; padding-left: 20px;}
+ .right{float: right; padding-right: 20px;}
 </style>
 </head> 
 <body>
 <h1>직원목록</h1>
-<a href ="empInsert.do">신규등록</a>     <!-- 먼저 서블릿으로 갔다가 보여주는 페이지는 empinsert.jsp이다. -->
+<hr>
+<h2>EL(Expression Language)문법</h2>
+<p>application영역의 접근 : ${appVar}</p>
+<p>session영역의 접근 : ${sessionVar}</p>
+<p>request영역의 접근 : ${requestVar}</p>
+<div><span><a class="left" href ="empInsert.do">신규등록</a></span></div>     <!-- 먼저 서블릿으로 갔다가 보여주는 페이지는 empinsert.jsp이다. -->
+<div><span class="right">${user.user_name}님 환영합니다.</span><span><a class="right" href="../logOut">로그아웃</a></span></div>
 <br><br>
 <table>
  <tr>

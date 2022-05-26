@@ -3,6 +3,7 @@ package controller;
 import dto.DeptDTO;
 import dto.EmpVO;
 import dto.JobVO;
+import dto.UsersVO;
 import model.DeptService;
 import model.EmpService;
 import util.DateUtil;
@@ -13,6 +14,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.List;
@@ -24,9 +26,14 @@ import java.util.List;
 public class EmpInsertServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	protected void doGet(HttpServletRequest request, 
-			HttpServletResponse response) throws ServletException, IOException {
-
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		UsersVO user = (UsersVO) session.getAttribute("user");
+		if(user == null){
+			System.out.println("로그인하지않음... 직원정보 볼수 없다.");
+			response.sendRedirect("../html/login.do");
+			return;
+		}
 
 		DeptService dService = new DeptService();
 		List<DeptDTO> dlist = dService.selectAll();
@@ -44,11 +51,11 @@ public class EmpInsertServlet extends HttpServlet {
 	}
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		//�Է��ϱ� 
-		request.setCharacterEncoding("utf-8");
+		//request.setCharacterEncoding("utf-8");
 		EmpVO emp = makeEmp(request);
 		EmpService eService = new EmpService();
 		int result = eService.empInsert(emp);
-		request.setAttribute("message", result>0?"�������� insert����":"�������� insert����");
+		request.setAttribute("message", result>0?"직원정보 insert성공":"직원정보 insert실패");
 		RequestDispatcher rd;
 		rd = request.getRequestDispatcher("result.jsp");
 		rd.forward(request, response);

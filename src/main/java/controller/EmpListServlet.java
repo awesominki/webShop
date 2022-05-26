@@ -21,7 +21,7 @@ public class EmpListServlet extends HttpServlet {
        
     
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+		request.setCharacterEncoding("utf-8");
 		HttpSession session = request.getSession();
 		UsersVO user = (UsersVO) session.getAttribute("user");
 		if(user == null){
