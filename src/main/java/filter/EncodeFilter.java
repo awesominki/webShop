@@ -1,11 +1,10 @@
 package filter;
 
 import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-@WebFilter("*.do")
+//@WebFilter("*.do")
 public class EncodeFilter implements Filter {
     public void init(FilterConfig config) throws ServletException {
     }
