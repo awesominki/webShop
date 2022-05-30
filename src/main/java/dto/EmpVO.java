@@ -17,10 +17,10 @@ public class EmpVO {
 	private double commission_pct; 
 	private int manager_id;	
 	private int department_id;
-	
-	
-	
-	public int getEmployee_id() {
+
+
+
+    public int getEmployee_id() {
 		return employee_id;
 	}
 	public void setEmployee_id(int employee_id) {
